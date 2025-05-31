@@ -51,15 +51,16 @@ class Album(models.Model):
     file_name = models.CharField("Название файла", max_length=200)
     inventory_number = models.CharField("Инвентарный номер", max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
+    file_hash = models.CharField("Хэш файла", max_length=64, blank=True, null=True, editable=False)
     
     def save(self, *args, **kwargs):
         if not self.inventory_number and self.file_name:
-            # More robust extraction with fallback
+            # inventory name extraction
             match = re.search(r'М-\d{6}', self.file_name)
             if match:
                 self.inventory_number = match.group()
             else:
-                # Fallback: Generate default if pattern not found
+                # Fallback, making a default inventory number
                 self.inventory_number = "М-000000"
         super().save(*args, **kwargs)
 
