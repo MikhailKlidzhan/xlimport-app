@@ -27,8 +27,8 @@ class SiteObject(models.Model):
 
 
 class Album(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, verbose_name="Заказчик")
-    site_object = models.ForeignKey(SiteObject, on_delete=models.PROTECT, verbose_name="Объект")
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, verbose_name="Заказчик")
+    site_object = models.ForeignKey(SiteObject, on_delete=models.CASCADE, verbose_name="Объект")
     name = models.TextField("Наименование")
 
     class Meta:
@@ -47,7 +47,7 @@ class Album(models.Model):
         default=DocumentationType.KJ,
     )
 
-    volume = models.FloatField("Объем")
+    volume = models.FloatField("Объем", null=True, blank=True)
     file_name = models.CharField("Название файла", max_length=200)
     inventory_number = models.CharField("Инвентарный номер", max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -55,12 +55,12 @@ class Album(models.Model):
     def save(self, *args, **kwargs):
         if not self.inventory_number and self.file_name:
             # More robust extraction with fallback
-            match = re.search(r'M-\d{6}', self.file_name)
+            match = re.search(r'М-\d{6}', self.file_name)
             if match:
                 self.inventory_number = match.group()
             else:
                 # Fallback: Generate default if pattern not found
-                self.inventory_number = "M-000000"
+                self.inventory_number = "М-000000"
         super().save(*args, **kwargs)
 
     def __str__(self):
