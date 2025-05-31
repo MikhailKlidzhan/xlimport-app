@@ -14,10 +14,14 @@ $(document).ready(function() {
     // handle file upload
     $("#submit-upload").click(function(){
         const fileInput = $("#excel-file")[0];
+        const submitBtn = $(this);
+
         if (fileInput.files.length === 0) {
             alert("Пожалуйста, сначала выберите файл!");
             return;
         }
+
+        submitBtn.prop("disabled", true).text("Загрузка...");
 
         const formData = new FormData($("#upload-form")[0]);
         formData.append("excel-file", fileInput.files[0]);
@@ -29,10 +33,22 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(response) {
+                console.log("AJAX Response:", response); 
+
+                $("#uploadModal").one("hidden.bs.modal", function(){
+                    if (response.status === "duplicate") {
+                        alert(response.message);
+                    } else {
+                        fetchAndDisplayData();
+                        alert("Файл успешно загружен!");
+                    }
+                    $("#upload-excel").trigger("focus");
+                    });
+
                 uploadModal.hide();
                 $("#upload-form")[0].reset();
-                fetchAndDisplayData();
-                alert("Файл успешно загружен!");
+                submitBtn.prop("disabled", false).text("Upload");
+                
             },
             error: function(xhr) {
                 try {
@@ -82,6 +98,7 @@ $(document).ready(function() {
                     <td>${album.volume !== null ? album.volume : "-"}</td>
                     <td>${album.name}</td>
                     <td>${album.file_name}</td>
+                    <td>${album.inventory_number}</td>
                 </tr>
                 `);
         });

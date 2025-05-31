@@ -21,6 +21,7 @@ def get_albums(request: HttpRequest):
             "volume",
             "name",
             "file_name",
+            "inventory_number",
         )
 
         albums_list = list(albums)
