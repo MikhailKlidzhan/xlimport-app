@@ -77,18 +77,18 @@ def upload_excel(request: HttpRequest):
             print("First row:", df.iloc[0].to_dict())
 
             # remove whitespaces
-            df.columns = [col.strip() for col in df.columns]
+            df.columns = [str(col).strip().lower() for col in df.columns]
             print("Cleaned columns in Excel:", df.columns.tolist())
 
 
 
             column_mapping = {
-                "Заказчик": "customer",
-                "Объект": "site_object",
-                "Вид документации": "documentation_type",
-                "Объем": "volume",
-                "Наименование": "name",
-                "Название файла": "file_name",
+                "заказчик": "customer",
+                "объект": "site_object",
+                "вид документации": "documentation_type",
+                "объем": "volume",
+                "наименование": "name",
+                "название файла": "file_name",
             }
 
             df.rename(columns=column_mapping, inplace=True)
