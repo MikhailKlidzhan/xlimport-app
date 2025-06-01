@@ -94,13 +94,23 @@ def upload_excel(request: HttpRequest):
             df.rename(columns=column_mapping, inplace=True)
 
             # clean volume column
-            df["volume_cleaned"] = (
-                df["volume"]
-                .str.replace(",", ".", regex=False)
-                .str.replace(r"[^\d.-]", "", regex=True)
-                .replace("", float("nan"))
-                .astype(float)
-            )
+            
+            if "volume" in df.columns:
+                if pd.api.types.is_string_dtype(df["volume"]):
+                    df["volume_cleaned"] = (
+                        df["volume"]
+                        .str.replace(",", ".", regex=False)
+                        .str.replace(r"[^\d.-]", "", regex=True)
+                        .replace("", float("nan"))
+                        .astype(float)
+                    )
+                elif pd.api.types.is_integer_dtype(df["volume"]):
+                    df["volume_cleaned"] = df["volume"].astype(float)  # Convert directly to float
+                else:
+                    df["volume_cleaned"] = float("nan")  # Handle other cases
+            else:
+                df["volume_cleaned"] = float("nan")  # Column doesn't exist
+                print("Warning: 'volume' column not found in uploaded file")
 
             for _, row in df.iterrows():
                 customer, _ = Customer.objects.get_or_create(name=row["customer"])

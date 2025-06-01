@@ -1,21 +1,29 @@
-$(document).ready(function() {
-    // initiate albumList for filters
+$(document).ready(function () {
+    console.log("✅ main.js loaded");
     let albumsList = [];
 
     const uploadModal = new bootstrap.Modal("#uploadModal");
 
-    // show modal
-    $("#upload-excel").click(function(){
+    // Show modal
+    $("#upload-excel").click(function () {
         uploadModal.show();
     });
 
-    // show data table
-    $("#show-data").click(function(){
+    // Show data table
+    $("#toggle-data").click(function () {
+    const button = $(this);
+    if ($("#data-table").hasClass("d-none")) {
         fetchAndDisplayData();
-    });
+        button.text("Hide Sheets");
+    } else {
+        $("#data-table").addClass("d-none");
+        $("#empty-message").removeClass("d-none");
+        button.text("Show Sheets");
+    }
+});
 
-    // handle file upload
-    $("#submit-upload").click(function(){
+    // Handle file upload
+    $("#submit-upload").click(function () {
         const fileInput = $("#excel-file")[0];
         const submitBtn = $(this);
 
@@ -24,7 +32,7 @@ $(document).ready(function() {
             return;
         }
 
-        submitBtn.prop("disabled", true).text("Загрузка...");
+        // submitBtn.prop("disabled", true).text("Загрузка...");
 
         const formData = new FormData($("#upload-form")[0]);
         formData.append("excel-file", fileInput.files[0]);
@@ -35,121 +43,196 @@ $(document).ready(function() {
             data: formData,
             processData: false,
             contentType: false,
-            success: function(response) {
-                console.log("AJAX Response:", response); 
+            success: function (response) {
+                console.log("AJAX Response:", response);
 
-                $("#uploadModal").one("hidden.bs.modal", function(){
+                $('#uploadModal').one("hidden.bs.modal", function () {
                     if (response.status === "duplicate") {
                         alert(response.message);
                     } else {
                         fetchAndDisplayData();
                         alert("Файл успешно загружен!");
                     }
-                    $("#upload-excel").trigger("focus");
-                    });
+                    $("#toggle-data").trigger("focus");
+                });
 
-                uploadModal.hide();
-                $("#upload-form")[0].reset();
-                submitBtn.prop("disabled", false).text("Upload");
-                
+                uploadModal.hide(); // triggers hidden.bs.modal
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 try {
                     const error = JSON.parse(xhr.responseText).error;
-                    alert("Ошибка " + error)
+                    alert("Ошибка " + error);
                 } catch {
                     alert("Произошла неизвестная ошибка!");
                 }
-
             }
         });
-
-
     });
 
     function fetchAndDisplayData() {
+    return new Promise((resolve, reject) => {
         $.ajax({
             url: "/get-albums/",
             type: "GET",
-            success: function(data) {
-                if (data.length > 0) {
+            success: function (data) {
+                console.log("Raw Data Received:", data); // Logging raw response
+
+                if (data && data.length > 0) {
                     renderTable(data);
                     $("#data-table").removeClass("d-none");
                     $("#empty-message").addClass("d-none");
-
+                    $("#toggle-data").text("Hide Sheets");
                 } else {
                     $("#data-table").addClass("d-none");
                     $("#empty-message").removeClass("d-none");
+                    $("#toggle-data").text("Show Sheets"); 
                 }
+
+                albumsList = data;
+                resolve(); // Resolve after assignment
             },
-            error: function() {
+            error: function () {
                 alert("Ошибка при обработке данных!");
+                reject();
             }
         });
-    }
-
-    function renderTable(data) {
-        // ful list for filtering
-        albumsList = data;
-
-        // getting current filter values
-        const selectedCustomer = $("#filter-customer").val();
-        const selectedSiteObject = $("#filter-site-object").val();
-        const selectedDocType = $("#filter-doc-type").val();
-
-        // applying filters
-        const filtered = albumsList.filter(album => {
-            return (
-                (!selectedCustomer || album.customer__name === selectedCustomer) &&
-                (!selectedSiteObject || album.site_object__name === selectedSiteObject) &&
-                (!selectedDocType || album.get_documentation_type_display === selectedDocType)
-            );
-        });
-
-
-
-        const tableBody = $("#data-table tbody");
-        tableBody.empty();
-
-        data.forEach(function(album) {
-            tableBody.append(`
-                <tr>
-                    <td>${album.customer__name}</td>
-                    <td>${album.site_object__name}</td>
-                    <td>${album.get_documentation_type_display}</td>
-                    <td>${album.volume !== null ? album.volume : "-"}</td>
-                    <td>${album.name}</td>
-                    <td>${album.file_name}</td>
-                    <td>${album.inventory_number}</td>
-                </tr>
-                `);
-        });
-    }
-
-    
-
-    // populate filters for customer, site_object, doc_type
-    function populateFilters(data) {
-        const customerSelect = $("#filter-customer");
-        const siteObjectSelect = $("#filter-site-object");
-
-        const customers = [...new Set(data.map(d => d.customer__name))];
-        const siteObjects = [...new Set(data.map(d => d.site_object__name))];
-
-        customers.forEach(name => {
-            customerSelect.append(`<option value="${name}">${name}</option>`);
-        });
-
-        siteObjects.forEach(name => {
-            siteObjectSelect.append(`<option value="${name}">${name}</option>`);
     });
 }
 
-// load data on page load
-    fetchAndDisplayData().then(() => {
-        populateFilters(albumList);
+    function normalize(str) {
+    return str ? str.normalize("NFKC") : "";
+}
+
+    function renderTable(data) {
+    
+    albumsList = data;
+
+    const selectedCustomer = $("#filter-customer").val();
+    const selectedSiteObject = $("#filter-site-object").val();
+    const selectedDocType = $("#filter-doc-type").val();
+
+    console.log("🔍 Selected Filters:", {
+        customer: selectedCustomer,
+        siteObject: selectedSiteObject,
+        docType: selectedDocType
+    });
+
+    const filtered = albumsList.filter(album => {
+        const cleanCustomer = normalize(album.customer__name);
+        const cleanSiteObject = normalize(album.site_object__name);
+        const cleanDocType = normalize(album.get_documentation_type_display);
+
+    const customerMatch = !selectedCustomer || normalize(album.customer__name) === normalize(selectedCustomer);
+    const siteObjectMatch = !selectedSiteObject || normalize(album.site_object__name) === normalize(selectedSiteObject);
+    const docTypeMatch = !selectedDocType || normalize(album.get_documentation_type_display) === normalize(selectedDocType);
+
+    // 📝 Log every album and match result
+        console.log("Filtering Album:", {
+            customer: album.customer__name,
+            cleanCustomer,
+            selectedCustomer,
+            customerMatch,
+            siteObject: album.site_object__name,
+            cleanSiteObject,
+            selectedSiteObject,
+            siteObjectMatch,
+            docType: album.get_documentation_type_display,
+            cleanDocType,
+            selectedDocType,
+            docTypeMatch,
+            matchesAll: customerMatch && siteObjectMatch && docTypeMatch
+        });
+
+    return customerMatch && siteObjectMatch && docTypeMatch;
+});
+
+    const tableBody = $("#data-table tbody");
+    tableBody.empty();
+
+    if (filtered.length === 0) {
+        tableBody.append(`
+            <tr><td colspan="7" class="text-center">Нет данных</td></tr>
+        `);
+        return;
+    }
+
+    filtered.forEach(function (album) {
+        tableBody.append(`
+            <tr>
+                <td>${album.customer__name || '-'}</td>
+                <td>${album.site_object__name || '-'}</td>
+                <td>${album.get_documentation_type_display || '-'}</td>
+                <td>${album.volume !== null ? album.volume : "-"}</td>
+                <td>${album.name || '-'}</td>
+                <td>${album.file_name || '-'}</td>
+                <td>${album.inventory_number || '-'}</td>
+            </tr>
+        `);
+    });
+}
+
+    function populateFilters(data) {
+        console.log("Populating filters with data:", data); // 👈 Debug line
+        const customerSelect = $("#filter-customer");
+        const siteObjectSelect = $("#filter-site-object");
+        const docTypeSelect = $("#filter-doc-type");
+
+        if (!data || data.length === 0) {
+            alert("Нет данных для фильтрации");
+            return;
+        }
+
+        // Clear existing options except first
+        customerSelect.find('option:not(:first)').remove();
+        siteObjectSelect.find('option:not(:first)').remove();
+        docTypeSelect.find('option:not(:first)').remove();
+
+        // Get unique values safely
+        const customers = [
+        ...new Set(
+            data
+                .map(d => d.customer__name)
+                .filter(name => name && name !== "")
+        )
+    ];
+        const siteObjects = [...new Set(data.map(d => d.site_object__name).filter(Boolean))];
+        const docTypes = [...new Set(data.map(d => d.get_documentation_type_display).filter(Boolean))];
+
+        // Populate selects
+        customers.forEach(name => {
+   
+    $('<option>').val(name).text(name).appendTo(customerSelect);
+});
+
+        siteObjects.forEach(name => {
+            $('<option>').val(name).text(name).appendTo(siteObjectSelect);
+        });
+
+        docTypes.forEach(type => {
+            $('<option>').val(type).text(type).appendTo(docTypeSelect);
+        });
+
+        console.log("Dropdown options after population:", {
+        customers: customerSelect.find("option").map(function() { return $(this).val(); }).get(),
+        siteObjects: siteObjectSelect.find("option").map(function() { return $(this).val(); }).get(),
+        docTypes: docTypeSelect.find("option").map(function() { return $(this).val(); }).get()
+    });
+}
+
+    // Load data and populate filters on page load
+    fetchAndDisplayData()
+    .then(() => {
+        populateFilters(albumsList);
+    })
+    .catch(() => {
+        alert("Не удалось загрузить данные для фильтров.");
     });
 
 
+    // Attach filter listeners
+    $("#filter-customer, #filter-site-object, #filter-doc-type").on("change", function () {
 
+    $("#data-table tbody").html('<tr><td colspan="7" class="text-center">Фильтрация...</td></tr>');
+    setTimeout(() => renderTable(albumsList), 100);
+});
 });
