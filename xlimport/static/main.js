@@ -1,4 +1,7 @@
 $(document).ready(function() {
+    // initiate albumList for filters
+    let albumsList = [];
+
     const uploadModal = new bootstrap.Modal("#uploadModal");
 
     // show modal
@@ -86,6 +89,25 @@ $(document).ready(function() {
     }
 
     function renderTable(data) {
+        // ful list for filtering
+        albumsList = data;
+
+        // getting current filter values
+        const selectedCustomer = $("#filter-customer").val();
+        const selectedSiteObject = $("#filter-site-object").val();
+        const selectedDocType = $("#filter-doc-type").val();
+
+        // applying filters
+        const filtered = albumsList.filter(album => {
+            return (
+                (!selectedCustomer || album.customer__name === selectedCustomer) &&
+                (!selectedSiteObject || album.site_object__name === selectedSiteObject) &&
+                (!selectedDocType || album.get_documentation_type_display === selectedDocType)
+            );
+        });
+
+
+
         const tableBody = $("#data-table tbody");
         tableBody.empty();
 
@@ -104,8 +126,7 @@ $(document).ready(function() {
         });
     }
 
-    // load data on page load
-    fetchAndDisplayData();
+    
 
     // populate filters for customer, site_object, doc_type
     function populateFilters(data) {
@@ -123,6 +144,11 @@ $(document).ready(function() {
             siteObjectSelect.append(`<option value="${name}">${name}</option>`);
     });
 }
+
+// load data on page load
+    fetchAndDisplayData().then(() => {
+        populateFilters(albumList);
+    });
 
 
 
