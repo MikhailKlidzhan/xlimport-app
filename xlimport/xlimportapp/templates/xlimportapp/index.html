@@ -21,6 +21,30 @@
             <button id="upload-excel" class="btn btn-success">Upload Excel</button>
         </div>
 
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label for="filter-customer" class="form-label">Заказчик</label>
+                <select class="form-select" id="filter-customer">
+                    <option value="">Все заказчики</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="filter-site-object" class="form-label">Объект</label>
+                <select class="form-select" id="filter-site-object">
+                    <option value="">Все объекты</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="filter-doc-type" class="form-label">Вид документации</label>
+                <select class="form-select" id="filter-doc-type">
+                    <option value="">Все типы</option>
+                    <option value="КЖ">КЖ</option>
+                    <option value="КМ">КМ</option>
+                    <option value="АР">АР</option>
+                </select>
+            </div>
+        </div>
+
         <div class="table-container">
             <div id="empty-message" class="empty-message text-center">
                 Nothing to show. Upload an Excel file or click "Show Sheets".
