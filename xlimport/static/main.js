@@ -107,7 +107,22 @@ $(document).ready(function() {
     // load data on page load
     fetchAndDisplayData();
 
+    // populate filters for customer, site_object, doc_type
+    function populateFilters(data) {
+        const customerSelect = $("#filter-customer");
+        const siteObjectSelect = $("#filter-site-object");
 
+        const customers = [...new Set(data.map(d => d.customer__name))];
+        const siteObjects = [...new Set(data.map(d => d.site_object__name))];
+
+        customers.forEach(name => {
+            customerSelect.append(`<option value="${name}">${name}</option>`);
+        });
+
+        siteObjects.forEach(name => {
+            siteObjectSelect.append(`<option value="${name}">${name}</option>`);
+    });
+}
 
 
 
