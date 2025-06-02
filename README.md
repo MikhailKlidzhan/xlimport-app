@@ -14,4 +14,6 @@ cd xlimport-app
 # DB_PORT=5432
 
 docker-compose up --build
+
+# run on localhost:8000/
 ```
