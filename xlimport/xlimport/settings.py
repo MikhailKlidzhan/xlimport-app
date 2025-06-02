@@ -34,8 +34,8 @@ DEBUG = True
 
 # DEBUG = False ## for production
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'host.docker.internal']
-
+ALLOWED_HOSTS = ["*"]
+# 'localhost', '127.0.0.1', '0.0.0.0', 'host.docker.internal'
 
 # Application definition
 
@@ -97,13 +97,12 @@ DB_PORT = os.getenv("DB_PORT")
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'postgres'),  # Fallback to 'postgres'
-        'USER': os.getenv('DB_USER', 'postgres'),  # Fallback to 'postgres'
-        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),  # Fallback
+        'NAME': DB_NAME,   
+        'USER': DB_USER, 
+        'PASSWORD': DB_PASSWORD,  
         'HOST': 'db',  
-        'PORT': os.getenv("DB_PORT", "5432"),
-    }
-}
+        'PORT': DB_PORT,
+}}
 
 
 # Password validation
