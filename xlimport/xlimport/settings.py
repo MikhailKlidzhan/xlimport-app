@@ -101,7 +101,7 @@ DATABASES = {
         'USER': os.getenv('DB_USER', 'postgres'),  # Fallback to 'postgres'
         'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),  # Fallback
         'HOST': 'db',  
-        'PORT': DB_PORT,
+        'PORT': os.getenv("DB_PORT", "5432"),
     }
 }
 
