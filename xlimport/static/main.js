@@ -9,19 +9,6 @@ $(document).ready(function () {
     uploadModal.show();
   });
 
-  // Show data table
-  $("#toggle-data").click(function () {
-    const button = $(this);
-    if ($("#data-table").hasClass("d-none")) {
-      fetchAndDisplayData();
-      button.text("Скрыть записи");
-    } else {
-      $("#data-table").addClass("d-none");
-      $("#empty-message").removeClass("d-none");
-      button.text("Показать записи");
-    }
-  });
-
   // Handle file upload
   $("#submit-upload").click(function () {
     const fileInput = $("#excel-file")[0];
@@ -43,18 +30,18 @@ $(document).ready(function () {
       contentType: false,
       success: function (response) {
         console.log("AJAX Response:", response);
-
         $("#uploadModal").one("hidden.bs.modal", function () {
           if (response.status === "duplicate") {
             alert(response.message);
           } else {
-            fetchAndDisplayData();
+            fetchAndDisplayData().then(() => {
+              populateFilters(albumsList);
+              renderTable(albumsList);
+            });
             alert("Файл успешно загружен!");
           }
-          $("#toggle-data").trigger("focus");
         });
-
-        uploadModal.hide(); // triggers hidden.bs.modal
+        uploadModal.hide();
       },
       error: function (xhr) {
         try {
@@ -73,22 +60,19 @@ $(document).ready(function () {
         url: "/get-albums/",
         type: "GET",
         success: function (data) {
-          console.log("Raw Data Received:", data); // Logging raw response
+          console.log("Raw Data Received:", data);
 
           if (data && data.length > 0) {
             renderTable(data);
             $("#data-table").removeClass("d-none");
             $("#empty-message").addClass("d-none");
-            $("#toggle-data").text("Скрыть записи");
           } else {
             $("#data-table").addClass("d-none");
             $("#empty-message").removeClass("d-none");
-            $("#toggle-data").text("Показать записи");
-            alert("Загрузите файл Excel!");
           }
 
           albumsList = data;
-          resolve(); // Resolve after assignment
+          resolve();
         },
         error: function () {
           alert("Ошибка при обработке данных!");
@@ -184,10 +168,10 @@ $(document).ready(function () {
     const siteObjectSelect = $("#filter-site-object");
     const docTypeSelect = $("#filter-doc-type");
 
-    if (!data || data.length === 0) {
-      alert("Нет данных для фильтрации");
-      return;
-    }
+    // if (!data || data.length === 0) {
+    //   alert("Нет данных для фильтрации");
+    //   return;
+    // }
 
     // Clear existing options except first
     customerSelect.find("option:not(:first)").remove();
@@ -246,12 +230,8 @@ $(document).ready(function () {
 
   // Load data and populate filters on page load
   fetchAndDisplayData()
-    .then(() => {
-      populateFilters(albumsList);
-    })
-    .catch(() => {
-      alert("Не удалось загрузить данные для фильтров.");
-    });
+    .then(() => populateFilters(albumsList))
+    .catch(() => alert("Не удалось загрузить данные для фильтров."));
 
   // Attach filter listeners
   $("#filter-customer, #filter-site-object, #filter-doc-type").on(

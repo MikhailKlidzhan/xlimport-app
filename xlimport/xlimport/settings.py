@@ -32,7 +32,7 @@ SECRET_KEY = 'django-insecure-)1n^o&dpw=nq)t@f30tdkzw3=#&m7^39e)@th1bi193&bp+#cl
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'host.docker.internal']
 
 
 # Application definition
@@ -95,10 +95,10 @@ DB_PORT = os.getenv("DB_PORT")
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': DB_NAME,
-        'USER': DB_USER,
-        'PASSWORD': DB_PASSWORD,
-        'HOST': DB_HOST,
+        'NAME': os.getenv('DB_NAME', 'postgres'),  # Fallback to 'postgres'
+        'USER': os.getenv('DB_USER', 'postgres'),  # Fallback to 'postgres'
+        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),  # Fallback
+        'HOST': 'db',  
         'PORT': DB_PORT,
     }
 }
@@ -142,7 +142,7 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-# STATIC_ROOT = BASE_DIR / 'static'
+# STATIC_ROOT = BASE_DIR / 'staticfiles' for production
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
