@@ -76,7 +76,7 @@ def upload_excel(request: HttpRequest):
             print("Column in Excel:", df.columns.tolist())
             print("First row:", df.iloc[0].to_dict())
 
-            # remove whitespaces
+            # remove whitespaces and lowercase
             df.columns = [str(col).strip().lower() for col in df.columns]
             print("Cleaned columns in Excel:", df.columns.tolist())
 
